@@ -1,5 +1,6 @@
 package com.devxmanish.DomainModelExtraction.controllers;
 
+import com.devxmanish.DomainModelExtraction.dtos.Response;
 import com.devxmanish.DomainModelExtraction.models.Job;
 import com.devxmanish.DomainModelExtraction.services.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +20,11 @@ public class JobController {
      * JobService internally triggers LLM processing.
      */
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadJob(
+    public ResponseEntity<Response<?>> uploadJob(
             @RequestParam("file") MultipartFile file,
             @RequestParam("mode") String mode,          // STEP_BY_STEP or BATCH
             @RequestParam(value = "model", required = false) String model
     ) {
-        Job job = jobService.createJob(file, mode, model);
-        return ResponseEntity.ok("Job created and LLM processing started. JobId: " + job.getId());
+        return ResponseEntity.ok(jobService.createJob(file, mode, model));
     }
 }

@@ -24,7 +24,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public LLMResult extractDomainModel(Long jobId, String storyText) {
+    public LLMResult extractDomainModel(Long jobId, String modelName, String storyText) {
         log.info("Inside extractDomainModel()");
 
         String prompt = """
@@ -43,14 +43,14 @@ public class LLMServiceImpl implements LLMService {
             """.formatted(storyText);
 
         // Use the session manager to maintain conversation memory per job
-        String llmResponse = sessionManager.chat(jobId, prompt);
+        String llmResponse = sessionManager.chat(jobId,modelName, prompt);
 
         // Convert LLM response to structured result
         return parseLLMResponse(llmResponse);
     }
 
     @Override
-    public List<LLMResult> extractDomainModelBatch(Long jobId, List<String> stories) {
+    public LLMResult extractDomainModelBatch(Long jobId, String modelName, List<String> stories) {
         log.info("Inside extractDomainModelBatch()");
 
         String prompt = """
@@ -58,30 +58,20 @@ public class LLMServiceImpl implements LLMService {
             Extract classes and relationships from the following list of user stories.
             Return ONLY valid JSON, no explanations, in the exact format:
             
-            [
-                {
-                  "classes": ["Class1", "Class2", "..."],
-                  "relationships": [
-                    { "source": "Class1", "target": "Class2", "type": "relationshipType" }
-                  ]
-                },
-                {
-                  "classes": ["Class1", "Class2", "..."],
-                  "relationships": [
-                    { "source": "Class1", "target": "Class2", "type": "relationshipType" }
-                  ]
-                },
+            {
+              "classes": ["Class1", "Class2", "..."],
+              "relationships": [
+                { "source": "Class1", "target": "Class2", "type": "relationshipType" },
                 ....
-            ]
-            
+              ]
+            }
             
             User Stories: "%s"
             """.formatted(stories);
 
-        String llmResponse = sessionManager.chat(jobId, prompt);
+        String llmResponse = sessionManager.chat(jobId, modelName, prompt);
 
-//        return parseBatchLLMResponse(llmResponse);
-        return null;
+        return parseLLMResponse(llmResponse);
     }
 
     @Override
@@ -96,7 +86,7 @@ public class LLMServiceImpl implements LLMService {
      * You can extend this to parse JSON or other structured LLM outputs.
      */
     private LLMResult parseLLMResponse(String responseText) {
-        log.info("Inside parseLLMResponse() with response: {}", responseText);
+        log.info("Inside parseLLMResponse()");
 
         try {
             JsonNode root = objectMapper.readTree(responseText);

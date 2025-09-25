@@ -14,7 +14,7 @@ public interface LLMService {
      * @param storyText the user story text
      * @return LLMResult containing extracted classes and relationships
      */
-    LLMResult extractDomainModel(Long jobId, String storyText);
+    LLMResult extractDomainModel(Long jobId, String modelName, String storyText);
 
     /**
      * Extract domain models from a batch of stories (one-shot).
@@ -23,7 +23,7 @@ public interface LLMService {
      * @param stories list of story texts
      * @return list of LLMResult, one per story
      */
-    List<LLMResult> extractDomainModelBatch(Long jobId, List<String> stories);
+    LLMResult extractDomainModelBatch(Long jobId, String modelName, List<String> stories);
 
     /**
      * Close the session/memory for a job after completion.

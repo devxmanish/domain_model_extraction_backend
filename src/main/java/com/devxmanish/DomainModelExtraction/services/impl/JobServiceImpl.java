@@ -1,5 +1,6 @@
 package com.devxmanish.DomainModelExtraction.services.impl;
 
+import com.devxmanish.DomainModelExtraction.dtos.Response;
 import com.devxmanish.DomainModelExtraction.enums.JobType;
 import com.devxmanish.DomainModelExtraction.enums.Status;
 import com.devxmanish.DomainModelExtraction.models.Job;
@@ -12,6 +13,7 @@ import com.devxmanish.DomainModelExtraction.services.LLMProcessingService;
 import com.devxmanish.DomainModelExtraction.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,7 +44,7 @@ public class JobServiceImpl implements JobService {
      * Creates a Job and associated UserStory records from uploaded file
      */
     @Override
-    public Job createJob(MultipartFile file, String mode, String model) {
+    public Response<?> createJob(MultipartFile file, String mode, String model) {
         log.info("Inside createJob()");
 
         User currentUser = userService.getCurrentLoggedInUser();
@@ -78,13 +80,21 @@ public class JobServiceImpl implements JobService {
             // Trigger LLM processing
             if (job.getJobType() == JobType.STEP_BY_STEP) {
                 for (UserStory story : userStories) {
-                    llmProcessingService.processStory(job,story);
+                    llmProcessingService.processStory(job.getModel(), story);
                 }
             } else {
-                llmProcessingService.processBatch(userStories);
+                llmProcessingService.processBatch(job.getModel(), userStories);
             }
 
-            return job;
+            job.setEndTime(LocalDateTime.now());
+            job.setStatus(Status.PROCESSED);
+
+            jobRepository.save(job);
+
+            return Response.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .message("Job created and Processed Successfully")
+                    .build();
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to create job from uploaded file", e);

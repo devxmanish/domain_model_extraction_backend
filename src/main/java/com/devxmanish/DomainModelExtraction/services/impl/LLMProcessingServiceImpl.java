@@ -34,16 +34,16 @@ public class LLMProcessingServiceImpl implements LLMProcessingService {
 
     /** Step-by-step story processing */
     @Override
-    public void processStory(Job job, UserStory story) {
+    public void processStory(String modelName, UserStory story) {
         log.info("Inside processStory() STEP_BY_STEP");
 
-        LLMResult result = llmService.extractDomainModel(story.getJob().getId(), story.getStoryText());
-        persistIntermediate(job, story, result);
+        LLMResult result = llmService.extractDomainModel(story.getJob().getId(), modelName, story.getStoryText());
+        persistIntermediate(story.getJob(), story, result);
     }
 
     /** Batch processing */
     @Override
-    public void processBatch(List<UserStory> stories) {
+    public void processBatch(String modelName, List<UserStory> stories) {
         log.info("Inside processBatch() STEP_BY_STEP");
 
         if (stories.isEmpty()) return;
@@ -51,11 +51,10 @@ public class LLMProcessingServiceImpl implements LLMProcessingService {
         List<String> texts = stories.stream()
                 .map(UserStory::getStoryText)
                 .toList();
-        List<LLMResult> results = llmService.extractDomainModelBatch(stories.getFirst().getJob().getId(), texts);
+        LLMResult result = llmService.extractDomainModelBatch(stories.getFirst().getJob().getId(), modelName, texts);
 
-        for (int i = 0; i < stories.size(); i++) {
-//            persistIntermediate(,stories.get(i), results.get(i));
-        }
+        // here we  are storing the first story id of the job in case of batch processing
+        persistIntermediate(stories.getFirst().getJob(),stories.getFirst(), result);
     }
 
     /** Persist intermediate classes and relationships */
@@ -63,7 +62,7 @@ public class LLMProcessingServiceImpl implements LLMProcessingService {
         log.info("Inside persistIntermediate()");
 
         // Persist classes and keep a map: className -> IntermediateClass
-        Map<String, IntermediateClass> classMap = result.classes().stream()
+        Map<String, IntermediateClass>  classMap = result.classes().stream()
                 .map(className -> new IntermediateClass(job, story, className, ExtractionPhase.LLM))
                 .map(classRepo::save) // save and return saved entity with ID
                 .collect(Collectors.toMap(IntermediateClass::getClassName, ic -> ic));

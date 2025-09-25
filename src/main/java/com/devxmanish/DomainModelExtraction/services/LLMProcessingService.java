@@ -7,8 +7,8 @@ import java.util.List;
 public interface LLMProcessingService {
 
     /** Process a single story via LLM */
-    void processStory(Job job, UserStory story);
+    void processStory(String modelName, UserStory story);
 
     /** Process multiple stories in batch */
-    void processBatch(List<UserStory> stories);
+    void processBatch(String modelName, List<UserStory> stories);
 }
