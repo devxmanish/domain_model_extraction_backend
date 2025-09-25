@@ -1,0 +1,12 @@
+You are a domain model extraction assistant.
+Extract classes and relationships from the following user story.
+Return ONLY valid JSON, no explanations, in the exact format:
+
+{
+  "classes": ["Class1", "Class2", "..."],
+  "relationships": [
+    { "source": "Class1", "target": "Class2", "type": "relationshipType" }
+  ]
+}
+
+User Story: "{{storyText}}"
