@@ -1,6 +1,7 @@
 package com.devxmanish.DomainModelExtraction.models;
 
 import com.devxmanish.DomainModelExtraction.enums.Status;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,6 +19,7 @@ public class UserStory {
 
     @ManyToOne
     @JoinColumn(name = "job_id", nullable = false)
+    @JsonBackReference
     private Job job;
 
     @Column(columnDefinition = "TEXT")
@@ -31,9 +33,11 @@ public class UserStory {
     private Long userId;
 
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<IntermediateClass> intermediateClasses;
 
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<IntermediateRelationship> intermediateRelationships;
 
     // Getters & Setters

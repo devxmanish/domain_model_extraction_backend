@@ -25,6 +25,16 @@ public class JobController {
             @RequestParam("mode") String mode,          // STEP_BY_STEP or BATCH
             @RequestParam(value = "model", required = false) String model
     ) {
-        return ResponseEntity.ok(jobService.createJob(file, mode, model));
+        // jobService.createJob now returns a Response with jobId immediately,
+        // while processing + step updates are pushed over WebSocket.
+        Response<?> response = jobService.createJob(file, mode, model);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping()
+    public ResponseEntity<Response<?>> getAllJobs(){
+        return ResponseEntity.ok(jobService.getAllJobs());
     }
 }

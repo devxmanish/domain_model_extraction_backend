@@ -11,4 +11,6 @@ public interface JobService {
     Response<?> createJob(MultipartFile file, String mode, String model);
     List<UserStory> getStoriesByJob(Long jobId);
     Job getJob(Long jobId);
+
+    Response<?> getAllJobs();
 }

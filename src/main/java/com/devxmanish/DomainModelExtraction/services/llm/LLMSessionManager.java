@@ -17,7 +17,7 @@ public class LLMSessionManager {
 
     private final Map<Long, ChatMemory> memories = new ConcurrentHashMap<>();
 
-    private String apiKey = "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";
+    private String apiKey = "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";
     private String apiUrl = "https://openrouter.ai/api/v1";
 
     /**

@@ -33,7 +33,8 @@ public class SecurityFilterConfig {
                 .authorizeHttpRequests(req->
                         req.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/jobs/**").hasAuthority("USER")
-                                .requestMatchers("/actuator/health").permitAll()
+                                .requestMatchers("/api/domain-model/**").hasAuthority("USER")
+                                .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);

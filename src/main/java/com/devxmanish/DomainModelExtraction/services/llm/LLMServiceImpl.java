@@ -1,8 +1,8 @@
 package com.devxmanish.DomainModelExtraction.services.llm;
 
-import com.devxmanish.DomainModelExtraction.dtos.LLMRelationshipDto;
-import com.devxmanish.DomainModelExtraction.dtos.LLMResult;
-import com.devxmanish.DomainModelExtraction.utility.PromptLoader;
+import com.devxmanish.DomainModelExtraction.dtos.DeduplicationLLMPayload;
+import com.devxmanish.DomainModelExtraction.dtos.DomainModelDTO;
+import com.devxmanish.DomainModelExtraction.dtos.RelationshipDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public LLMResult extractDomainModel(Long jobId, String modelName, String storyText) {
+    public DomainModelDTO extractDomainModel(Long jobId, String modelName, String storyText) {
         log.info("Inside extractDomainModel()");
 
         String prompt = """
@@ -50,7 +50,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public LLMResult extractDomainModelBatch(Long jobId, String modelName, List<String> stories) {
+    public DomainModelDTO extractDomainModelBatch(Long jobId, String modelName, List<String> stories) {
         log.info("Inside extractDomainModelBatch()");
 
         String prompt = """
@@ -70,7 +70,6 @@ public class LLMServiceImpl implements LLMService {
             """.formatted(stories);
 
         String llmResponse = sessionManager.chat(jobId, modelName, prompt);
-
         return parseLLMResponse(llmResponse);
     }
 
@@ -81,11 +80,36 @@ public class LLMServiceImpl implements LLMService {
         sessionManager.closeSession(jobId);
     }
 
+    @Override
+    public String consolidateDomainModel(Long jobId, DeduplicationLLMPayload payload, String modelName) {
+        log.info("Inside consolidateDomainModel()");
+
+        String prompt = """
+            You are a domain model consolidation assistant.
+            Given classes and relationships (possibly with duplicates),
+            produce a deduplicated consolidated domain model.
+            Return ONLY valid JSON in this format:
+            {
+              "classes": [
+                { "name": "User", "storyIds": [1, 2] },
+                { "name": "Task", "storyIds": [1] }
+              ],
+              "relationships": [
+                { "source": "User", "target": "Task", "type": "creates", "storyIds": [1] }
+              ]
+            }
+            
+            payload: "%s"
+            """.formatted(payload);
+
+        return sessionManager.chat(jobId,modelName, prompt);
+    }
+
     /**
      * Parse the LLM response text into a structured result (classes + relationships).
      * You can extend this to parse JSON or other structured LLM outputs.
      */
-    private LLMResult parseLLMResponse(String responseText) {
+    private DomainModelDTO parseLLMResponse(String responseText) {
         log.info("Inside parseLLMResponse()");
 
         try {
@@ -98,21 +122,21 @@ public class LLMServiceImpl implements LLMService {
             }
 
             // Extract relationships
-            List<LLMRelationshipDto> relationships = new ArrayList<>();
+            List<RelationshipDto> relationships = new ArrayList<>();
             if (root.has("relationships") && root.get("relationships").isArray()) {
                 for (JsonNode rel : root.get("relationships")) {
                     String source = rel.has("source") ? rel.get("source").asText() : null;
                     String target = rel.has("target") ? rel.get("target").asText() : null;
                     String type   = rel.has("type")   ? rel.get("type").asText()   : null;
-                    relationships.add(new LLMRelationshipDto(source, target, type));
+                    relationships.add(new RelationshipDto(source, target, type));
                 }
             }
 
-            return new LLMResult(classes, relationships);
+            return new DomainModelDTO(classes, relationships);
         } catch (Exception e) {
             log.error("Failed to parse LLM response JSON", e);
             // Return empty but non-null result
-            return new LLMResult(List.of(), List.of());
+            return new DomainModelDTO(List.of(), List.of());
         }
     }
 }

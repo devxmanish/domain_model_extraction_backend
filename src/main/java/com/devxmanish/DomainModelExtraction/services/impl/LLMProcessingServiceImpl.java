@@ -1,7 +1,7 @@
 package com.devxmanish.DomainModelExtraction.services.impl;
 
-import com.devxmanish.DomainModelExtraction.dtos.LLMRelationshipDto;
-import com.devxmanish.DomainModelExtraction.dtos.LLMResult;
+import com.devxmanish.DomainModelExtraction.dtos.DomainModelDTO;
+import com.devxmanish.DomainModelExtraction.dtos.RelationshipDto;
 import com.devxmanish.DomainModelExtraction.enums.ExtractionPhase;
 import com.devxmanish.DomainModelExtraction.models.IntermediateClass;
 import com.devxmanish.DomainModelExtraction.models.IntermediateRelationship;
@@ -37,7 +37,7 @@ public class LLMProcessingServiceImpl implements LLMProcessingService {
     public void processStory(String modelName, UserStory story) {
         log.info("Inside processStory() STEP_BY_STEP");
 
-        LLMResult result = llmService.extractDomainModel(story.getJob().getId(), modelName, story.getStoryText());
+        DomainModelDTO result = llmService.extractDomainModel(story.getJob().getId(), modelName, story.getStoryText());
         persistIntermediate(story.getJob(), story, result);
     }
 
@@ -51,14 +51,14 @@ public class LLMProcessingServiceImpl implements LLMProcessingService {
         List<String> texts = stories.stream()
                 .map(UserStory::getStoryText)
                 .toList();
-        LLMResult result = llmService.extractDomainModelBatch(stories.getFirst().getJob().getId(), modelName, texts);
+        DomainModelDTO result = llmService.extractDomainModelBatch(stories.getFirst().getJob().getId(), modelName, texts);
 
         // here we  are storing the first story id of the job in case of batch processing
         persistIntermediate(stories.getFirst().getJob(),stories.getFirst(), result);
     }
 
     /** Persist intermediate classes and relationships */
-    private void persistIntermediate(Job job, UserStory story, LLMResult result) {
+    private void persistIntermediate(Job job, UserStory story, DomainModelDTO result) {
         log.info("Inside persistIntermediate()");
 
         // Persist classes and keep a map: className -> IntermediateClass
@@ -68,7 +68,7 @@ public class LLMProcessingServiceImpl implements LLMProcessingService {
                 .collect(Collectors.toMap(IntermediateClass::getClassName, ic -> ic));
 
         // Persist relationships using resolved IDs
-        for (LLMRelationshipDto rel : result.relationships()) {
+        for (RelationshipDto rel : result.relationships()) {
             IntermediateClass sourceClass = classMap.get(rel.source());
             IntermediateClass targetClass = classMap.get(rel.target());
 

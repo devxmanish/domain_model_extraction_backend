@@ -2,6 +2,7 @@ package com.devxmanish.DomainModelExtraction.models;
 
 import com.devxmanish.DomainModelExtraction.enums.JobType;
 import com.devxmanish.DomainModelExtraction.enums.Status;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -34,18 +35,23 @@ public class Job {
     private Integer processedStories;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<UserStory> stories;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<IntermediateClass> intermediateClasses;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<IntermediateRelationship> intermediateRelationships;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<ConfirmedClass> confirmedClasses;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<ConfirmedRelationship> confirmedRelationships;
 
     // Getters & Setters

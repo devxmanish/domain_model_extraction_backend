@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         log.info("Inside login()");
 
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(()-> new NotFoundException("User not found"));
+                .orElseThrow(()-> new NotFoundException("User not registered yet"));
 
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
             throw new BadRequestException("Invalid password");

@@ -1,8 +1,10 @@
 package com.devxmanish.DomainModelExtraction.models;
 
 import com.devxmanish.DomainModelExtraction.enums.ExtractionPhase;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -14,6 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "intermediate_classes")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -25,10 +28,12 @@ public class IntermediateClass {
 
     @ManyToOne
     @JoinColumn(name = "story_id", nullable = false)
+    @JsonBackReference
     private UserStory story;
 
     @ManyToOne
     @JoinColumn(name="job_id", nullable = false)
+    @JsonBackReference
     private Job job;
 
     private String className;
@@ -40,9 +45,11 @@ public class IntermediateClass {
     private LocalDateTime timestamp;
 
     @OneToMany(mappedBy = "sourceClass", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<IntermediateRelationship> outgoingRelationships;
 
     @OneToMany(mappedBy = "targetClass", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<IntermediateRelationship> incomingRelationships;
 
     public IntermediateClass(Job job,UserStory story, String className, ExtractionPhase extractionPhase) {

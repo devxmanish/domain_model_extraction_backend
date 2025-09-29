@@ -11,6 +11,7 @@ import java.util.List;
 public interface IntermediateRelationshipRepository extends JpaRepository<IntermediateRelationship, Long> {
     List<IntermediateRelationship> findByStory(UserStory story);
     List<IntermediateRelationship> findByStoryId(Long storyId);
+    List<IntermediateRelationship> findByJobId(Long storyId);
     List<IntermediateRelationship> findByStoryIdAndExtractionPhase(Long storyId, ExtractionPhase phase);
     List<IntermediateRelationship> findBySourceClassIdAndTargetClassId(Long sourceClassId, Long targetClassId);
 }

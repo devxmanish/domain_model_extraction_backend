@@ -1,33 +1,50 @@
 package com.devxmanish.DomainModelExtraction.services;
 
-import com.devxmanish.DomainModelExtraction.models.ConfirmedClass;
-import com.devxmanish.DomainModelExtraction.models.ConfirmedRelationship;
-import com.devxmanish.DomainModelExtraction.models.IntermediateClass;
-import com.devxmanish.DomainModelExtraction.models.IntermediateRelationship;
+import com.devxmanish.DomainModelExtraction.dtos.Response;
+import com.devxmanish.DomainModelExtraction.dtos.ReviewDTO;
+import com.devxmanish.DomainModelExtraction.models.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
 public interface DomainModelService {
-    // Story-by-story review
-    List<IntermediateClass> getIntermediateClasses(Long storyId);
-    List<IntermediateRelationship> getIntermediateRelationships(Long storyId);
-    List<IntermediateClass> getConfirmedSoFarClasses(Long jobId);
-    List<IntermediateRelationship> getConfirmedSoFarRelationships(Long jobId);
 
-    // Edit operations
-    IntermediateClass addIntermediateClass(Long storyId, String className);
-    IntermediateClass updateIntermediateClass(Long classId, String newName);
-    void deleteIntermediateClass(Long classId);
+    // === Review Phase ===
+    Response<ReviewDTO> getReviewData(Long jobId);
 
-    IntermediateRelationship addIntermediateRelationship(Long storyId, Long sourceId, Long targetId, String type);
-    IntermediateRelationship updateIntermediateRelationship(Long relationshipId, String newType);
-    void deleteIntermediateRelationship(Long relationshipId);
+    Response<?> confirmStory(Long storyId);   // STEP_BY_STEP only
+    void confirmJob(Long jobId);       // BATCH only
 
-    // Confirm story
-    void confirmStory(Long storyId);
+    // === Deduplication & Consolidation ===
+    Response<?> deduplicateAndConsolidate(Long jobId); // STEP_BY_STEP always, BATCH optionally
+    void transferToConfirmed(Long jobId);       // BATCH only, skip dedupe
 
-    // Consolidation + deduplication
-    void consolidateJob(Long jobId);
+    // === Consolidated Review Phase ===
+    Response<?> getConsolidatedReview(Long jobId);
+    // === Confirmed Review Phase ===
     List<ConfirmedClass> getConfirmedClasses(Long jobId);
     List<ConfirmedRelationship> getConfirmedRelationships(Long jobId);
+
+
+    Response<?> addIntermediateClassForSBS(Long storyId, String className);
+    Response<?> updateIntermediateClass(Long classId, String className);
+    Response<?> deleteIntermediateClass(Long classId);
+
+    Response<?> addIntermediateRelationship(Long storyId, Long srcId, Long tgtId, String type);
+    Response<?> updateIntermediateRelationship(Long relId, String newType);
+    Response<?> deleteIntermediateRelationship(Long relId);
+
+
+    Response<?> addConfirmedClass(Long jobId, String className);
+    Response<?> updateConfirmedClass(Long classId, String newName);
+    Response<?> deleteConfirmedClass(Long classId);
+
+    Response<?> addConfirmedRelationship(Long jobId, Long srcId, Long tgtId, String type);
+    Response<?> updateConfirmedRelationship(Long relId, String newType);
+    Response<?> deleteConfirmedRelationship(Long relId);
+
+
+    // === Finalization ===
+    Response<?> getFinalDomainModel(Long jobId);
+
 }

@@ -11,6 +11,7 @@ import java.util.List;
 public interface IntermediateClassRepository extends JpaRepository<IntermediateClass, Long> {
     List<IntermediateClass> findByStory(UserStory story);
     List<IntermediateClass> findByStoryId(Long storyId);
+    List<IntermediateClass> findByJobId(Long storyId);
     List<IntermediateClass> findByStoryIdAndExtractionPhase(Long storyId, ExtractionPhase phase);
     List<IntermediateClass> findByClassNameAndStoryId(String className, Long storyId);
 }
