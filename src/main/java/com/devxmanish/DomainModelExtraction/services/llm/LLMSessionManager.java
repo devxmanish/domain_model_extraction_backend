@@ -7,6 +7,7 @@ import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -17,8 +18,11 @@ public class LLMSessionManager {
 
     private final Map<Long, ChatMemory> memories = new ConcurrentHashMap<>();
 
-    private String apiKey = "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";
-    private String apiUrl = "https://openrouter.ai/api/v1";
+    @Value("${openrouter.apiKey}")
+    private String apiKey;
+
+    @Value("${openrouter.apiUrl}")
+    private String apiUrl;
 
     /**
      * Executes a chat turn for a given job ID.
