@@ -1,7 +1,9 @@
 package com.devxmanish.DomainModelExtraction.services.impl;
 
 import com.devxmanish.DomainModelExtraction.dtos.*;
+import com.devxmanish.DomainModelExtraction.enums.ExtractionPhase;
 import com.devxmanish.DomainModelExtraction.enums.JobType;
+import com.devxmanish.DomainModelExtraction.enums.Status;
 import com.devxmanish.DomainModelExtraction.exceptions.NotFoundException;
 import com.devxmanish.DomainModelExtraction.models.*;
 import com.devxmanish.DomainModelExtraction.repos.JobRepository;
@@ -10,6 +12,7 @@ import com.devxmanish.DomainModelExtraction.services.ConfirmedReviewService;
 import com.devxmanish.DomainModelExtraction.services.DeduplicationService;
 import com.devxmanish.DomainModelExtraction.services.DomainModelService;
 import com.devxmanish.DomainModelExtraction.services.IntermediateReviewService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@Slf4j
 public class DomainModelServiceImpl implements DomainModelService {
 
     @Autowired
@@ -36,6 +40,8 @@ public class DomainModelServiceImpl implements DomainModelService {
 
     @Override
     public Response<ReviewDTO> getReviewData(Long jobId) {
+        log.info("Inside getReviewData()");
+
         Job job = jobRepo.findById(jobId)
                 .orElseThrow(()-> new NotFoundException("Job Not Found"));
 
@@ -46,10 +52,12 @@ public class DomainModelServiceImpl implements DomainModelService {
                     .data(ReviewDTO.fromBatch(job,
                             intermediateReviewService.getJobIntermediateClasses(jobId)
                                     .stream()
+                                    .filter(c -> c.getExtractionPhase() != ExtractionPhase.USER_DELETED)
                                     .map(c -> new ClassReviewDTO(c.getId(),c.getClassName()))
                                     .toList(),
                             intermediateReviewService.getJobIntermediateRelationships(jobId)
                                     .stream()
+                                    .filter(r -> r.getExtractionPhase() != ExtractionPhase.USER_DELETED)
                                     .map(r -> new RelationshipReviewDTO(r.getId(), r.getSourceClass().getClassName(), r.getTargetClass().getClassName(), r.getRelationshipType()))
                                     .toList()
                     ))
@@ -113,6 +121,8 @@ public class DomainModelServiceImpl implements DomainModelService {
 
     @Override
     public Response<?> addIntermediateClassForSBS(Long storyId, String className) {
+        log.info("Inside addintermediateClassForSBS()");
+
         //check the story is valid
         UserStory story = storyRepository.findById(storyId)
                 .orElseThrow(()-> new NotFoundException("Story not found"));
@@ -234,10 +244,52 @@ public class DomainModelServiceImpl implements DomainModelService {
 
     @Override
     public Response<?> getFinalDomainModel(Long jobId) {
+
+        Job job = jobRepo.findById(jobId)
+                .orElseThrow(()-> new NotFoundException("Job not found"));
+        job.setStatus(Status.CONFIRMED);
+
+        jobRepo.save(job);
+
         return Response.<DomainModelDTO>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Final Domain Model fetched")
                 .data(confirmedReviewService.getFinalDomainModel(jobId))
+                .build();
+    }
+
+    @Override
+    public Response<?> addIntermediateClassForBM(Long jobId, String className) {
+        log.info("Inside addintermediateClassForBM()");
+
+        //check the job is valid
+        Job job = jobRepo.findById(jobId)
+                .orElseThrow(()-> new NotFoundException("Job not found"));
+
+        //check either this story is associated with BATCH
+        if(job.getJobType() == JobType.BATCH){
+            intermediateReviewService.addIntermediateClassForBM(job,className);
+        }
+        return Response.builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Intermediate classes added successfully")
+                .build();
+    }
+
+    @Override
+    public Response<?> addIntermediateRelationshipBM(Long jobId, Long srcId, Long tgtId, String type) {
+        log.info("Inside addIntermediateRelationshipBM()");
+
+        Job job = jobRepo.findById(jobId)
+                .orElseThrow(()-> new NotFoundException("Job not found"));
+
+        if(job.getJobType() == JobType.BATCH){
+            intermediateReviewService.addIntermediateRelationshipBM(job, srcId, tgtId, type);
+        }
+
+        return Response.builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Intermediate relationship added successfully")
                 .build();
     }
 

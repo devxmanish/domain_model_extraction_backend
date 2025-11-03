@@ -47,4 +47,7 @@ public interface DomainModelService {
     // === Finalization ===
     Response<?> getFinalDomainModel(Long jobId);
 
+    Response<?> addIntermediateClassForBM(Long jobId, String className);
+
+    Response<?> addIntermediateRelationshipBM(Long jobId, Long srcId, Long tgtId, String type);
 }

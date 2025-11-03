@@ -72,6 +72,7 @@ public class ConfirmedReviewServiceImpl implements ConfirmedReviewService {
 
         // map classes
         List<ConsolidatedReviewDTO.ClassDTO> classDTOs = confirmedClasses.stream()
+                .filter(c -> c.getExtractionPhase() != ExtractionPhase.USER_DELETED)
                 .map(cc -> {
                     List<Long> storyIds = parseStoryIds(cc.getStoryIds());
                     List<UserStory> stories = storyIds.stream()
@@ -84,6 +85,7 @@ public class ConfirmedReviewServiceImpl implements ConfirmedReviewService {
 
         // map relationships
         List<ConsolidatedReviewDTO.RelationshipDTO> relDTOs = confirmedRels.stream()
+                .filter(r -> r.getExtractionPhase() != ExtractionPhase.USER_DELETED)
                 .map(rel -> {
                     ConfirmedClass src = confirmedClasses.stream()
                             .filter(c -> c.getId().equals(rel.getSourceClass().getId()))
@@ -158,7 +160,7 @@ public class ConfirmedReviewServiceImpl implements ConfirmedReviewService {
         ConfirmedClass scc = classRepo.findById(srcId)
                 .orElseThrow(()-> new NotFoundException("Source class not found"));
 
-        ConfirmedClass tcc = classRepo.findById(srcId)
+        ConfirmedClass tcc = classRepo.findById(tgtId)
                 .orElseThrow(()-> new NotFoundException("Source class not found"));
 
         ConfirmedRelationship cr = ConfirmedRelationship.builder()
@@ -197,9 +199,6 @@ public class ConfirmedReviewServiceImpl implements ConfirmedReviewService {
     @Override
     public DomainModelDTO getFinalDomainModel(Long jobId) {
         log.info("Inside getFinalDomainModel()");
-
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(()-> new NotFoundException("Job not found"));
 
         List<String> cc = classRepo.findByJobId(jobId).stream()
                 .filter(c -> c.getExtractionPhase() != ExtractionPhase.USER_DELETED)

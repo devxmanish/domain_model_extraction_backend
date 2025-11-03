@@ -5,6 +5,7 @@ import com.devxmanish.DomainModelExtraction.dtos.RelationshipReviewDTO;
 import com.devxmanish.DomainModelExtraction.dtos.StoryReviewDTO;
 import com.devxmanish.DomainModelExtraction.models.IntermediateClass;
 import com.devxmanish.DomainModelExtraction.models.IntermediateRelationship;
+import com.devxmanish.DomainModelExtraction.models.Job;
 import com.devxmanish.DomainModelExtraction.models.UserStory;
 
 import java.util.List;
@@ -30,4 +31,8 @@ public interface IntermediateReviewService {
 
     void confirmStory(Long storyId);
     void confirmJob(Long jobId);
+
+    void addIntermediateClassForBM(Job job, String className);
+
+    void addIntermediateRelationshipBM(Job job, Long srcId, Long tgtId, String type);
 }

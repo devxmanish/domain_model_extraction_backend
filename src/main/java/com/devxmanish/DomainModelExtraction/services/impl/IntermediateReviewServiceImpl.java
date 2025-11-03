@@ -58,9 +58,11 @@ public class IntermediateReviewServiceImpl implements IntermediateReviewService 
 
         for (UserStory u : us) {
             List<ClassReviewDTO> ic = classRepo.findByStory(u).stream()
+                    .filter(c -> c.getExtractionPhase() != ExtractionPhase.USER_DELETED)
                     .map(c -> new ClassReviewDTO(c.getId(), c.getClassName()))
                     .toList();
             List<RelationshipReviewDTO> ir = relRepo.findByStory(u).stream()
+                    .filter(r -> r.getExtractionPhase() != ExtractionPhase.USER_DELETED)
                     .map(r -> new RelationshipReviewDTO(r.getId(), r.getSourceClass().getClassName(), r.getTargetClass().getClassName(), r.getRelationshipType()))
                     .toList();
             stories.add(StoryReviewDTO.builder()
@@ -165,5 +167,36 @@ public class IntermediateReviewServiceImpl implements IntermediateReviewService 
         Job job = jobRepo.findById(jobId).orElseThrow();
         job.setStatus(Status.CONFIRMED);
         jobRepo.save(job);
+    }
+
+    @Override
+    public void addIntermediateClassForBM(Job job, String className) {
+        IntermediateClass newIC = IntermediateClass.builder()
+                .className(className)
+                .extractionPhase(ExtractionPhase.USER_ADDED)
+                .timestamp(LocalDateTime.now())
+                .story(job.getStories().getFirst())
+                .job(job)
+                .build();
+        classRepo.save(newIC);
+    }
+
+    @Override
+    public void addIntermediateRelationshipBM(Job job, Long srcId, Long tgtId, String type) {
+        IntermediateClass sc = classRepo.findById(srcId)
+                .orElseThrow(()-> new NotFoundException("Source Class not found"));
+
+        IntermediateClass tc = classRepo.findById(tgtId)
+                .orElseThrow(()-> new NotFoundException("Target Class not found"));
+
+        IntermediateRelationship ir = IntermediateRelationship.builder()
+                .story(job.getStories().getFirst())
+                .timestamp(LocalDateTime.now())
+                .job(job)
+                .sourceClass(sc)
+                .targetClass(tc)
+                .relationshipType(type)
+                .build();
+        relRepo.save(ir);
     }
 }

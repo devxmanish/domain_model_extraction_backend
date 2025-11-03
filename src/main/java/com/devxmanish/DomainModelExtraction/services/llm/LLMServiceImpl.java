@@ -105,6 +105,45 @@ public class LLMServiceImpl implements LLMService {
         return sessionManager.chat(jobId,modelName, prompt);
     }
 
+    @Override
+    public String generatePlantUMLCode(Long jobId, DomainModelDTO payload, String modelName) {
+        log.info("Inside generatePlantUMLCode()");
+
+        String prompt = """
+            You are a UML generation assistant.
+            Given the final consolidated domain model in JSON format containing classes and relationships,
+            generate the corresponding PlantUML class diagram code.
+        
+            Rules:
+            1. Do NOT add or remove any classes or relationships from the payload.
+            2. Preserve all names and relationship types exactly as given.
+            3. For each class, add only the most likely core attributes 
+               (like id, name, date, description, status, etc.) 
+               that help to understand the domain easily — but keep them generic and minimal.
+            4. Maintain clean and readable PlantUML syntax.
+            5. Do NOT include any explanations, comments, or markdown — only output the PlantUML code.
+        
+            Expected Output Format:
+            @startuml
+            class User {
+              +id
+              +name
+            }
+            class Task {
+              +id
+              +title
+              +status
+            }
+            User --> Task : creates
+            @enduml
+        
+            payload: "%s"
+            """.formatted(payload);
+
+
+        return sessionManager.chat(jobId,modelName, prompt);
+    }
+
     /**
      * Parse the LLM response text into a structured result (classes + relationships).
      * You can extend this to parse JSON or other structured LLM outputs.

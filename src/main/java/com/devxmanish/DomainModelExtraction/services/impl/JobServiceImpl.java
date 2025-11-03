@@ -61,7 +61,7 @@ public class JobServiceImpl implements JobService {
         Map<String, String> llmModels = Map.of(
                 "ChatGPT", "openai/gpt-oss-120b:free",
                 "Gemini","google/gemini-2.0-flash-exp:free",
-                "Grok","x-ai/grok-4-fast:free",
+                "Grok","x-ai/grok-code-fast-1",
                 "DeepSeek","deepseek/deepseek-chat-v3.1:free",
                 "Llama","meta-llama/llama-3.3-70b-instruct:free"
         );
@@ -104,7 +104,18 @@ public class JobServiceImpl implements JobService {
                     .build();
 
             // Trigger async processing AFTER returning the response
-            CompletableFuture.runAsync(() -> processJobAsync(finalJob.getId(), userStories));
+            CompletableFuture.runAsync(() -> {
+                try {
+                // Small delay (1–2 seconds) to ensure frontend is subscribed
+                Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
+                processJobAsync(finalJob.getId(), userStories);
+
+                }
+            );
 
             return response;
 
@@ -127,12 +138,12 @@ public class JobServiceImpl implements JobService {
             if (job.getJobType() == JobType.STEP_BY_STEP) {
                 for (UserStory story : userStories) {
                     messagingTemplate.convertAndSend("/topic/jobs/" + job.getId(),
-                            new JobEvent(job.getId(), "PROCESSING_STORY", "Processing story: " + story.getStoryText()));
+                            new JobEvent(job.getId(), "PROCESSING_STORY", "story: " + story.getStoryText()));
 
                     llmProcessingService.processStory(job.getModel(), story);
 
                     messagingTemplate.convertAndSend("/topic/jobs/" + job.getId(),
-                            new JobEvent(job.getId(), "STORY_PROCESSED", "Finished story: " + story.getId()));
+                            new JobEvent(job.getId(), "STORY_PROCESSED", "story: " + story.getStoryText()));
 
                     job.setProcessedStories(job.getProcessedStories() + 1);
                     jobRepository.save(job);

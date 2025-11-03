@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface UMLGenerationService {
     String generatePlantUML(Long jobId);
-    String generatePlantUML(List<ConfirmedClass> classes, List<ConfirmedRelationship> relationships);
 }

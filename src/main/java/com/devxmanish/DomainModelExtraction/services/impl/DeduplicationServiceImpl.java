@@ -59,9 +59,6 @@ public class DeduplicationServiceImpl implements DeduplicationService {
         // 3. call llm
         String jsonResponse = llmService.consolidateDomainModel(jobId, payload, llmModelName);
 
-        // close the chat session for this job;
-        llmService.closeJobSession(jobId);
-
         DeduplicationResult result = DeduplicationResult.fromJson(jsonResponse);
 
         // 4. Save into Confirmed tables

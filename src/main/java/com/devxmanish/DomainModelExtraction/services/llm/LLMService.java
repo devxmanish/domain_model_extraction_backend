@@ -34,4 +34,6 @@ public interface LLMService {
     void closeJobSession(Long jobId);
 
     String consolidateDomainModel(Long jobId, DeduplicationLLMPayload payload, String modelName);
+
+    String generatePlantUMLCode(Long jobId, DomainModelDTO payload, String modelName);
 }

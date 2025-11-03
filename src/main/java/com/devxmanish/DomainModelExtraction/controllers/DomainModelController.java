@@ -44,6 +44,13 @@ public class DomainModelController {
         return ResponseEntity.ok(domainModelService.addIntermediateClassForSBS(storyId, className));
     }
 
+    // this is only valid for the STEP_BY_STEP process review
+    @PostMapping("/review/story/{jobId}/class/batch")
+    public ResponseEntity<Response<?>> addIntermediateClassBM(@PathVariable Long jobId,
+                                                            @RequestParam String className) {
+        return ResponseEntity.ok(domainModelService.addIntermediateClassForBM(jobId, className));
+    }
+
     // used by both Batch and Step_By_Step
     @PutMapping("/review/class/{classId}")
     public ResponseEntity<Response<?>> updateIntermediateClass(@PathVariable Long classId,
@@ -66,6 +73,14 @@ public class DomainModelController {
                                                                 @RequestParam Long tgtId,
                                                                 @RequestParam String type) {
         return ResponseEntity.ok(domainModelService.addIntermediateRelationship(storyId, srcId, tgtId, type));
+    }
+
+    @PostMapping("/review/story/{jobId}/relationship/batch")
+    public ResponseEntity<Response<?>> addIntermediateRelationshipBM(@PathVariable Long jobId,
+                                                                   @RequestParam Long srcId,
+                                                                   @RequestParam Long tgtId,
+                                                                   @RequestParam String type) {
+        return ResponseEntity.ok(domainModelService.addIntermediateRelationshipBM(jobId, srcId, tgtId, type));
     }
 
     @PutMapping("/review/relationship/{relId}")
